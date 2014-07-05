@@ -1,0 +1,7 @@
+.DS_STORE
+/.vagrant/*
+*.pyc
+/static/*
+/media/*
+Berksfile.lock
+Gemfile.lock
