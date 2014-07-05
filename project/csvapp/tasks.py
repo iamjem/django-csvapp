@@ -1,5 +1,7 @@
 import pandas as pd
+from tempfile import TemporaryFile
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files import File
 from celery import task
 from csvapp.models import Document, SortedDocument
 from csvapp.pubsub import publish
@@ -65,4 +67,35 @@ def clean_and_update_document(id):
 @task
 def create_sorted_document_file(id):
     """ Create a sorted document file """
-    pass
+    ret = {
+        'event_name': 'sorteddocument'
+    }
+    data = ret['data'] = {}
+
+    try:
+        doc = SortedDocument.objects.get(pk=id)
+    except ObjectDoesNotExist:
+        doc = None
+
+    if doc:
+        data['id'] = doc.id
+
+        # Load CSV contents, chunk by chunk into DataFrame
+        doc.file.open(mode='rb')
+        txt_iter = pd.read_csv(doc.doc.file, iterator=True, chunksize=1024 * 64)
+        df = pd.concat(txt_iter, ignore_index=True)
+        doc.file.close()
+
+        df = df.sort(columns=[doc.column], ascending=doc.ascending)
+
+        # Save sorted version, chunk by chunk
+        with TemporaryFile() as f:
+            # chunksize here refers to rows to write at a time
+            df.to_csv(f, index=False, chunksize=100)
+            doc.file = File(f, name='sorted.csv')
+            doc.save()
+
+        # Publish data
+        publish('csvapp.user.{}'.format(doc.doc.user.id), ret)
+
+    return ret
