@@ -7,25 +7,14 @@ from pandas.util.testing import assert_series_equal
 from threading import Event
 from django.contrib.auth import get_user_model
 from django.core.files import File
-from django.db.models.signals import post_save
 from django.test import TestCase
 from csvapp.tasks import clean_and_update_document, create_sorted_document_file
 from csvapp.models import Document, SortedDocument
 from csvapp.pubsub import broadcaster, subscribe
-from csvapp.signals import post_save_document, post_save_sorted_document
+from csvapp.tests.mixins import SignalMixin
 
 
-class SignalMixin(object):
-    def disconnect_signals(self):
-        post_save.disconnect(post_save_document, sender=Document)
-        post_save.disconnect(post_save_sorted_document, sender=SortedDocument)
-
-    def reconnect_signals(self):
-        post_save.connect(post_save_document, sender=Document)
-        post_save.connect(post_save_sorted_document, sender=SortedDocument)
-
-
-class DocumentTaskTestCase(TestCase, SignalMixin):
+class DocumentTaskTestCase(SignalMixin, TestCase):
     def tearDown(self):
         broadcaster._reset_handlers()
 
@@ -88,7 +77,7 @@ class DocumentTaskTestCase(TestCase, SignalMixin):
             'document task should publish data')
 
 
-class SortedDocumentTaskTestCase(TestCase, SignalMixin):
+class SortedDocumentTaskTestCase(SignalMixin, TestCase):
     def tearDown(self):
         broadcaster._reset_handlers()
 

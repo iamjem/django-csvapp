@@ -38,22 +38,14 @@ class SortedDocumentSerializer(serializers.ModelSerializer):
 
     def validate_doc(self, attrs, source):
         value = attrs[source]
-        if not Document.objects.filter(pk=value,
-                                       user=self.request.user).exists():
+        if value.user != self.context['request'].user:
             raise serializers.ValidationError(
                 'You must own the document to be sorted.')
         return attrs
 
     def validate_column(self, attrs, source):
         value = attrs[source]
-        try:
-            doc = Document.objects.get(pk=attrs['doc'],
-                                       user=self.request.user)
-        except:
-            raise serializers.ValidationError(
-                'Invalid document.')
-
-        if value not in doc.column_names:
+        if value not in attrs['doc'].column_names:
             raise serializers.ValidationError(
                 'Invalid column name.')
         return attrs
