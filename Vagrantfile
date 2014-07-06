@@ -37,7 +37,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision :shell do |s|
     $script = <<-eos
       sudo -u postgres createdb development
-      sudo apt-get -q -y install git-core python-virtualenv python-dev
+      sudo apt-get -q -y install git-core python-virtualenv python-dev libevent-dev
     eos
 
     s.inline = $script

@@ -81,7 +81,7 @@ def create_sorted_document_file(id):
         data['id'] = doc.id
 
         # Load CSV contents, chunk by chunk into DataFrame
-        doc.file.open(mode='rb')
+        doc.doc.file.open(mode='rb')
         txt_iter = pd.read_csv(doc.doc.file, iterator=True, chunksize=1024 * 64)
         df = pd.concat(txt_iter, ignore_index=True)
         doc.file.close()

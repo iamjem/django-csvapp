@@ -4,12 +4,8 @@ from csvapp.pubsub import broadcaster, publish, subscribe
 
 
 class PubSubTestCase(SimpleTestCase):
-    def setUp(self):
-        pass
-
     def tearDown(self):
         broadcaster._reset_handlers()
-        print 'tear down!!!'
 
     def test_subscribe_noncallable(self):
         has_error = False

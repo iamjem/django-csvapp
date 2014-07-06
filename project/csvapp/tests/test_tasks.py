@@ -3,6 +3,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 import pandas as pd
+from pandas.util.testing import assert_series_equal
 from threading import Event
 from django.contrib.auth import get_user_model
 from django.core.files import File
@@ -87,14 +88,14 @@ class DocumentTaskTestCase(TestCase, SignalMixin):
             'document task should publish data')
 
 
-class SortedDocumentTaskTestCase(TestCase):
+class SortedDocumentTaskTestCase(TestCase, SignalMixin):
     def tearDown(self):
         broadcaster._reset_handlers()
 
     def create_document(self):
         df = pd.DataFrame({
-            'A': ['A', 'B', 'C', 'D', 'E'],
-            'B': ['Bar', 'Bar', 'Foo', 'Foo', 'Foo']
+            'A': ['A', 'B', 'C'],
+            'B': ['Bar', 'Bar', 'Foo']
         })
         out = StringIO()
         df.to_csv(out, index=False)
@@ -107,7 +108,7 @@ class SortedDocumentTaskTestCase(TestCase):
             user=self.user, file=File(out, name='doc.csv'))
         out.close()
 
-    def test_document_with_duplicates(self):
+    def test_sorted_asc(self):
         self.disconnect_signals()
         self.create_document()
 
@@ -118,25 +119,55 @@ class SortedDocumentTaskTestCase(TestCase):
         meta = result.get()
 
         self.reconnect_signals()
+        self.sorted_doc = SortedDocument.objects.get(pk=self.sorted_doc.id)
 
-        self.assertEqual(1, 0, 'poo')
+        # Load contents into pandas
+        self.sorted_doc.file.open(mode='rb')
+        txt_iter = pd.read_csv(
+            self.sorted_doc.file,
+            iterator=True,
+            chunksize=1024 * 64)
+        df = pd.concat(txt_iter, ignore_index=True)
+        self.sorted_doc.file.close()
 
-    # def test_document_publishes(self):
-    #     self.disconnect_signals()
-    #     self.create_document_with_duplicates()
-    #     pub_event = Event()
+        expected = pd.Series(['A', 'B', 'C'])
 
-    #     def handler(data):
-    #         pub_event.set()
+        try:
+            assert_series_equal(expected, df['A'])
+            is_equal = True
+        except AssertionError:
+            is_equal = False
 
-    #     subscribe('csvapp.user.{}'.format(self.user.id), handler)
+        self.assertTrue(is_equal, 'ascending sort should match expected')
 
-    #     result = clean_and_update_document.delay(self.doc.id)
-    #     meta = result.get()
+    def test_sorted_desc(self):
+        self.disconnect_signals()
+        self.create_document()
 
-    #     self.reconnect_signals()
-    #     pub_event.wait(0.5)
+        self.sorted_doc = SortedDocument.objects.create(
+            doc=self.doc, column='A', ascending=False)
 
-    #     self.assertTrue(
-    #         pub_event.is_set(),
-    #         'document task should publish data')
+        result = create_sorted_document_file.delay(self.sorted_doc.id)
+        meta = result.get()
+
+        self.reconnect_signals()
+        self.sorted_doc = SortedDocument.objects.get(pk=self.sorted_doc.id)
+
+        # Load contents into pandas
+        self.sorted_doc.file.open(mode='rb')
+        txt_iter = pd.read_csv(
+            self.sorted_doc.file,
+            iterator=True,
+            chunksize=1024 * 64)
+        df = pd.concat(txt_iter, ignore_index=True)
+        self.sorted_doc.file.close()
+
+        expected = pd.Series(['C', 'B', 'A'])
+
+        try:
+            assert_series_equal(expected, df['A'])
+            is_equal = True
+        except AssertionError:
+            is_equal = False
+
+        self.assertTrue(is_equal, 'descending sort should match expected')
