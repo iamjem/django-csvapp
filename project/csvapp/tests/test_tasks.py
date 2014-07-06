@@ -1,7 +1,3 @@
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
 import pandas as pd
 from pandas.util.testing import assert_series_equal
 from threading import Event
@@ -12,6 +8,7 @@ from csvapp.tasks import clean_and_update_document, create_sorted_document_file
 from csvapp.models import Document, SortedDocument
 from csvapp.pubsub import broadcaster, subscribe
 from csvapp.tests.mixins import SignalMixin
+from csvapp.tests.utils import create_file
 
 
 class DocumentTaskTestCase(SignalMixin, TestCase):
@@ -19,15 +16,7 @@ class DocumentTaskTestCase(SignalMixin, TestCase):
         broadcaster._reset_handlers()
 
     def create_document_with_duplicates(self):
-        df = pd.DataFrame({
-            'A': ['Foo', 'Bar', 'Foo', 'Bar', 'Foo'],
-            'B': ['Bar', 'Bar', 'Foo', 'Foo', 'Foo']
-        })
-        out = StringIO()
-        df.to_csv(out, index=False)
-        out.seek(0)
-        out.flush()
-
+        out = create_file()
         self.user = get_user_model().objects.create_user(
             username='foo', password='bar')
         self.doc = Document.objects.create(
@@ -82,15 +71,10 @@ class SortedDocumentTaskTestCase(SignalMixin, TestCase):
         broadcaster._reset_handlers()
 
     def create_document(self):
-        df = pd.DataFrame({
+        out = create_file({
             'A': ['A', 'B', 'C'],
             'B': ['Bar', 'Bar', 'Foo']
         })
-        out = StringIO()
-        df.to_csv(out, index=False)
-        out.seek(0)
-        out.flush()
-
         self.user = get_user_model().objects.create_user(
             username='foo', password='bar')
         self.doc = Document.objects.create(
