@@ -85,6 +85,11 @@ STATIC_ROOT = root('..', 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = root('..', 'media')
 
+# AUTH
+LOGIN_REDIRECT_URL = '/csv/'
+LOGIN_URL = '/csv/login/'
+LOGOUT_URL = '/csv/logout/'
+
 # REST FRAMEWORK
 REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': (

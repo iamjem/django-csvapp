@@ -1,32 +1,27 @@
 from socketio.namespace import BaseNamespace
 from socketio.sdjango import namespace
+from csvapp.pubsub import subscribe, unsubscribe
 
 
-@namespace('/battleship')
-class BattleshipNamespace(BaseNamespace):
+@namespace('/csv')
+class CSVNamespace(BaseNamespace):
     def initialize(self):
         pass
-        # self.session.player = self.player = \
-        #     PlayerActor.start(self.request.user, self.socket).proxy()
 
     def disconnect(self, *args, **kwargs):
-        super(BattleshipNamespace, self).disconnect(*args, **kwargs)
+        super(CSVNamespace, self).disconnect(*args, **kwargs)
+        unsubscribe(
+            'csvapp.user.{}'.format(self.request.user),
+            self.subscribe_handler)
 
-    # def get_initial_acl(self):
-    #     return ['recv_connect']
+    def recv_connect(self):
+        if self.request.user.is_authenticated():
+            subscribe(
+                'csvapp.user.{}'.format(self.request.user),
+                self.subscribe_handler)
+        else:
+            self.disconnect()
 
-    # def recv_connect(self):
-    #     if self.request.user.is_authenticated():
-    #         self.add_acl_method('on_joinqueue')
-    #     else:
-    #         self.disconnect()
-
-    # def on_joinqueue(self):
-    #     self.del_acl_method('on_joinqueue')
-    #     self.add_acl_method('on_leavequeue')
-    #     match_maker.join(self.player)
-
-    # def on_leavequeue(self):
-    #     self.del_acl_method('on_leavequeue')
-    #     self.add_acl_method('on_joinqueue')
-    #     match_maker.leave(self.player)
+    def subscribe_handler(self, data):
+        print 'got data'
+        print data

@@ -1,0 +1,17 @@
+{% extends "csvapp/base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+<div ng-app="app">
+  <div ng-view></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'csvapp/scripts/socket.io.js' %}"></script>
+<script src="{% static 'csvapp/app/js/angular.min.js' %}"></script>
+<script src="{% static 'csvapp/app/js/angular-route.min.js' %}"></script>
+<script src="{% static 'csvapp/app/js/app.js' %}"></script>
+<script src="{% static 'csvapp/app/js/services.js' %}"></script>
+<script src="{% static 'csvapp/app/js/controllers.js' %}"></script>
+{% endblock %}
