@@ -10,10 +10,11 @@ angular.module('app.services', [])
         },
 
         off: function(event, listener){
-            socket.off(event, listener);
+            socket.removeListener(event, listener);
         }
     };
 })
+
 .factory('documentRepository', ['$http', '$upload', 'documentEndpoint', function($http, $upload, endpoint){
     return {
         list: function(){
@@ -27,6 +28,30 @@ angular.module('app.services', [])
                 file: file
             });
 
+            return promise;
+        },
+
+        get: function(id){
+            var promise = $http.get(endpoint + id + '/');
+            return promise;
+        }
+    };
+}])
+
+.factory('sortedDocumentRepository', ['$http', 'sortedDocumentEndpoint', function($http, endpoint){
+    return {
+        create: function(doc, columnName, ascending){
+            var promise = $http.post(endpoint, {
+                doc: doc,
+                column: columnName,
+                ascending: ascending
+            });
+
+            return promise;
+        },
+
+        get: function(id){
+            var promise = $http.get(endpoint + id + '/');
             return promise;
         }
     };

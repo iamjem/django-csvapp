@@ -9,7 +9,7 @@ router.register(
     views.DocumentViewSet,
     base_name='document')
 router.register(
-    r'sorted_documents',
+    r'sorted-documents',
     views.SortedDocumentViewSet,
     base_name='sorted-document')
 

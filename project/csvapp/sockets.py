@@ -5,9 +5,6 @@ from csvapp.pubsub import subscribe, unsubscribe
 
 @namespace('/csv')
 class CSVNamespace(BaseNamespace):
-    def initialize(self):
-        pass
-
     def disconnect(self, *args, **kwargs):
         super(CSVNamespace, self).disconnect(*args, **kwargs)
         unsubscribe(

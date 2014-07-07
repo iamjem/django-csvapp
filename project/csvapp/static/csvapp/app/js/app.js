@@ -10,7 +10,7 @@ angular.module('app', [
 ])
 .value('MEDIA_URL', MEDIA_URL)
 .value('documentEndpoint', '/api/documents/')
-.value('sortedDocumentEndpoint', '/api/sorted-document/')
+.value('sortedDocumentEndpoint', '/api/sorted-documents/')
 .config(['$routeProvider', function($routeProvider) {
   $routeProvider
     .when('/', {

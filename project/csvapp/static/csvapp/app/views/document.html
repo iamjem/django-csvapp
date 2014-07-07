@@ -1,44 +1,43 @@
 <div class="container">
     <div class="alert alert-info alert-main" ng-show="doc">
         <h3>New Sorted Document</h3>
-        <div ng-show="uploadState == STATUS.DISABLED">
+        <div ng-show="createState == STATUS.DISABLED">
             There doesn't appear to be any column names available for this document.
         </div>
 
-        <div ng-show="uploadState == STATUS.WAITING">
+        <div ng-show="createState == STATUS.WAITING">
             <form class="form" name="form" novalidate>
                 <div class="form-group">
                     <label>Select sort column</label>
-                    <select ng-model="columnName" name="columnName" required>
+                    <select ng-model="columnName" name="columnName" class="form-control" required>
                         <option value="{{ col }}" ng-repeat="col in doc.column_names">{{ col }}</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Select ordering</label>
-                    <select ng-model="columnAscending" name="columnAscending" required>
+                    <select ng-model="columnAscending" name="columnAscending" class="form-control" required>
                         <option value="true">Ascending</option>
                         <option value="false">Descending</option>
                     </select>
                 </div>
 
-                <button class="btn btn-primary" ng-click="create()" ng-disabled="form.$invalid">Submit</button>
-
+                <button class="btn btn-primary" ng-click="create(form)" ng-disabled="form.$invalid">Submit</button>
             </form>
         </div>
 
-        <div ng-show="uploadState == STATUS.AWAITING">
+        <div ng-show="createState == STATUS.AWAITING">
             Waiting for document...
         </div>
 
-        <div ng-show="uploadState == STATUS.READY">
+        <div ng-show="createState == STATUS.READY">
             <p>Your document is ready!</p>
             <a class="btn btn-primary" ng-href="{{ MEDIA_URL }}{{ newDoc.file }}">Download</a>
-            <a class="btn btn-primary" ng-click="uploadState = STATUS.WAITING">Create another</a>
+            <a class="btn btn-primary" ng-click="createState = STATUS.WAITING">Create another</a>
         </div>
 
-        <div ng-show="uploadState == STATUS.ERROR">
-            Looks like there was a problem. <a class="alert-link" ng-click="uploadState = STATUS.WAITING">Click here</a> to try again.
+        <div ng-show="createState == STATUS.ERROR">
+            Looks like there was a problem. <a class="alert-link" ng-click="createState = STATUS.WAITING">Click here</a> to try again.
         </div>
     </div>
     
@@ -54,12 +53,12 @@
             <th>Actions</th>
         </thead>
         <tbody>
-            <tr class="row-nodata" ng-show="!sorotedDocuments">
-                <td colspan="3">
+            <tr class="row-nodata" ng-show="sortedDocuments.length == 0">
+                <td colspan="5">
                     You have no sorted documents.
                 </td>
             </tr>
-            <tr ng-repeat="sortdoc in sorotedDocuments">
+            <tr ng-repeat="sortdoc in sortedDocuments">
                 <th>{{ $index + 1 }}</th>
                 <td>{{ sortdoc.created }}</td>
                 <td>{{ sortdoc.column }}</td>
