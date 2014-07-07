@@ -1,9 +1,33 @@
 'use strict';
 
-/* Services */
 
+angular.module('app.services', [])
+.factory('csvSocket', function(){
+    var socket = io.connect('/csv');
+    return {
+        on: function(event, listener){
+            socket.on(event, listener);
+        },
 
-// Demonstrate how to register services
-// In this case it is a simple value service.
-angular.module('myApp.services', []).
-  value('version', '0.1');
+        off: function(event, listener){
+            socket.off(event, listener);
+        }
+    };
+})
+.factory('documentRepository', ['$http', '$upload', 'documentEndpoint', function($http, $upload, endpoint){
+    return {
+        list: function(){
+            var promise = $http.get(endpoint);
+            return promise;
+        },
+
+        create: function(file){
+            var promise = $upload.upload({
+                url: endpoint,
+                file: file
+            });
+
+            return promise;
+        }
+    };
+}])

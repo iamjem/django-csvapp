@@ -1,0 +1,61 @@
+<div class="container">
+    <div class="alert alert-info alert-main" ng-file-drop="onFileSelect($files)"
+        ng-file-drag-over-class="has-file">
+        <h3>Upload New Document</h3>
+        <div ng-show="uploadState == STATUS.WAITING">
+            <input type="file" ng-file-select="onFileSelect($files)" ng-file-drop-available="dropSupported=true" ng-show="!dropSupported">
+            <span ng-show="dropSupported">Drop a CSV file here to begin upload.</span>
+        </div>
+
+        <div ng-show="uploadState == STATUS.UPLOADING">
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped active"  role="progressbar" ng-style="{ width: progress + '%' }"></div>
+            </div>
+        </div>
+
+        <div ng-show="uploadState == STATUS.AWAITING">
+            Awaiting document meta data...
+        </div>
+
+        <div ng-show="uploadState == STATUS.HAS_META">
+            <ul>
+                <li>We found <strong>{{ docmentMeta.duplicates }} duplicate rows</strong></li>
+                <li ng-repeat="(key, value) in docmentMeta.columns">
+                    <strong>{{ value.duplicates }} duplicates</strong> in the <strong>{{ key }} column</strong>
+                </li>
+            </ul>
+            <a class="alert-link" ng-click="uploadState = STATUS.WAITING">Click here</a> to try another upload.
+        </div>
+
+        <div ng-show="uploadState == STATUS.ERROR">
+            Looks like there was a problem. <a class="alert-link" ng-click="uploadState = STATUS.WAITING">Click here</a> to try another upload.
+        </div>
+    </div>
+    
+    
+    <h1>Documents</h1>
+
+    <table class="table table-condensed table-hover">
+        <thead>
+            <th>#</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </thead>
+        <tbody>
+            <tr class="row-nodata" ng-show="!documents">
+                <td colspan="3">
+                    You have no documents.
+                </td>
+            </tr>
+            <tr ng-repeat="doc in documents">
+                <th>{{ $index + 1 }}</th>
+                <td>{{ doc.created }}</td>
+                <td>
+                    <a ng-href="#/document/{{ doc.id }}" class="btn btn-primary btn-xs" ng-show="doc.column_names">Create Sorted</a>
+                    <a class="btn btn-primary btn-xs disabled" ng-show="!doc.column_names">Create Sorted</a>
+                    <a ng-href="{{ MEDIA_URL }}{{ doc.file }}" class="btn btn-primary btn-xs" ng-show="doc.file">Download</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

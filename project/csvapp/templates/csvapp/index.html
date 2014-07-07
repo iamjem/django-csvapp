@@ -7,10 +7,21 @@
 </div>
 {% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{% static 'csvapp/app/css/app.css' %}">
+{% endblock %}
+
 {% block scripts %}
-<script src="{% static 'csvapp/scripts/socket.io.js' %}"></script>
+<script>
+  var STATIC_ROOT = '{% static "csvapp/app/" %}';
+  var MEDIA_URL = '{{ MEDIA_URL }}';
+</script>
+<script src="{% static 'csvapp/app/js/socket.io.js' %}"></script>
+<script src="{% static 'csvapp/app/js/angular-file-upload-shim.min.js' %}"></script>
 <script src="{% static 'csvapp/app/js/angular.min.js' %}"></script>
 <script src="{% static 'csvapp/app/js/angular-route.min.js' %}"></script>
+<script src="{% static 'csvapp/app/js/angular-cookies.js' %}"></script>
+<script src="{% static 'csvapp/app/js/angular-file-upload.min.js' %}"></script>
 <script src="{% static 'csvapp/app/js/app.js' %}"></script>
 <script src="{% static 'csvapp/app/js/services.js' %}"></script>
 <script src="{% static 'csvapp/app/js/controllers.js' %}"></script>

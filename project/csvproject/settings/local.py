@@ -25,3 +25,4 @@ REDIS_MAX_CONNECTION = 5
 
 BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend'
+CELERY_ALWAYS_EAGER = True

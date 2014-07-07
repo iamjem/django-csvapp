@@ -1,16 +1,33 @@
 'use strict';
 
 
-// Declare app level module which depends on filters, and services
-angular.module('myApp', [
+angular.module('app', [
   'ngRoute',
-  'myApp.filters',
-  'myApp.services',
-  'myApp.directives',
-  'myApp.controllers'
-]).
-config(['$routeProvider', function($routeProvider) {
-  $routeProvider.when('/view1', {templateUrl: 'partials/partial1.html', controller: 'MyCtrl1'});
-  $routeProvider.when('/view2', {templateUrl: 'partials/partial2.html', controller: 'MyCtrl2'});
-  $routeProvider.otherwise({redirectTo: '/view1'});
+  'ngCookies',
+  'angularFileUpload',
+  'app.services',
+  'app.controllers'
+])
+.value('MEDIA_URL', MEDIA_URL)
+.value('documentEndpoint', '/api/documents/')
+.value('sortedDocumentEndpoint', '/api/sorted-document/')
+.config(['$routeProvider', function($routeProvider) {
+  $routeProvider
+    .when('/', {
+        templateUrl: STATIC_ROOT + 'views/main.html', 
+        controller: 'MainCtrl'
+    })
+    .when('/document/:id', {
+        templateUrl: STATIC_ROOT + 'views/document.html', 
+        controller: 'DocumentCtrl'
+    })
+    .otherwise({
+        redirectTo: '/'
+    });
+}])
+.run(['$http', '$cookies', function($http, $cookies){
+    // add CSRF headers for AJAX...
+    // really should have something more sophisticated to make sure
+    // this wouldn't get included in cross site AJAX requests
+    $http.defaults.headers.common['X-CSRFToken'] = $cookies.csrftoken;
 }]);

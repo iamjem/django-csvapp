@@ -27,8 +27,8 @@ class Broadcaster(Greenlet):
             except (TypeError, AttributeError):
                 argspec = None
         if argspec:
-            assert len(argspec[0]) == 1, \
-                'Subscriber handlers must accept one ' \
+            assert len(argspec[0]) == 1 or argspec[0][0] == 'self' and \
+                len(argspec[0]) == 2, 'Subscriber handlers must accept one ' \
                 'positional argument (data).'
 
         self._handlers[channel].append(handler)

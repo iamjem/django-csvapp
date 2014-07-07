@@ -1,22 +1,24 @@
 from django.conf.urls import patterns, include, url
 from csvapp.views import AppView
+from csvapp.forms import BootstrapAuthForm
 
 
 urlpatterns = patterns('',
     url(r'^', include('csvapp.api.urls')),
-    url(r'^csv/$',
+    url(r'^$',
         view=AppView.as_view(),
         name='csv_index'
     ),
-    url(r'^csv/login/$',
-        view='django.contribut.auth.views.login',
+    url(r'^login/$',
+        view='django.contrib.auth.views.login',
         kwargs={
-            'template_name': 'csvapp/login.html'
+            'template_name': 'csvapp/login.html',
+            'authentication_form': BootstrapAuthForm
         },
         name='csv_login'
     ),
-    url(r'^csv/logout/$',
-        view='django.contribut.auth.views.logout_then_login',
+    url(r'^logout/$',
+        view='django.contrib.auth.views.logout_then_login',
         name='csv_logout'
     ),
 )

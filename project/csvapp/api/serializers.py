@@ -2,15 +2,18 @@ import re
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from csvapp.models import Document, SortedDocument
+from csvapp.api.fields import JSONField
 
 
 CSV_PATTERN = re.compile(r'^.+\.csv$', re.I)
-CSV_CONTENT_TYPES = ('text/csv', 'text/plain')
 
 
 class DocumentSerializer(serializers.ModelSerializer):
-    # TODO: Should set user field manually?
+    column_names = JSONField()
     sorted_documents = serializers.RelatedField(many=True)
+    created = serializers.DateTimeField(
+        format='%b %d, %Y %I:%M %p %Z',
+        read_only=True)
 
     class Meta:
         model = Document
@@ -24,14 +27,14 @@ class DocumentSerializer(serializers.ModelSerializer):
         if not CSV_PATTERN.match(value.name):
             raise serializers.ValidationError('Invalid file format.')
 
-        # Check content type
-        if value.content_type not in CSV_CONTENT_TYPES:
-            raise serializers.ValidationError('Invalid content type.')
-
         return attrs
 
 
 class SortedDocumentSerializer(serializers.ModelSerializer):
+    created = serializers.DateTimeField(
+        format='%b %d, %Y %I:%M %p %Z',
+        read_only=True)
+
     class Meta:
         model = SortedDocument
         fields = ('id', 'doc', 'file', 'column', 'created')
