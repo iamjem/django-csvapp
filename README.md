@@ -5,7 +5,7 @@
 The following instructions walk through running the project using Vagrant.
 
 1. Install [Vagrant](http://www.vagrantup.com/).
-2. Install Berkself (`vagrant plugin install vagrant-berkshelf`) and Omnibus (`vagrant plugin install vagrant-omnibus`) plugins for Vagrant.
+2. Install Berkself (`vagrant plugin install vagrant-berkshelf --plugin-version 2.0.1`) and Omnibus (`vagrant plugin install vagrant-omnibus`) plugins for Vagrant.
 3. Clone this project to your VM root (`cd ~/VM/csvapp && git clone git@github.com:iamjem/django-csvapp.git .`).
 4. Install Berkshelf via Bundler (`gem install bundler` and `bundle install`).
 5. Install Vagrant cookbooks with Berkshelf (`berks install`).
