@@ -4,7 +4,9 @@ from threading import Event
 from django.contrib.auth import get_user_model
 from django.core.files import File
 from django.test import TestCase
-from csvapp.tasks import clean_and_update_document, create_sorted_document_file
+from csvapp.tasks import clean_and_update_document, \
+    create_sorted_document_file, clean_and_update_document_nopanda, \
+    create_sorted_document_file_nopanda
 from csvapp.models import Document, SortedDocument
 from csvapp.pubsub import broadcaster, subscribe
 from csvapp.tests.mixins import SignalMixin
@@ -45,7 +47,49 @@ class DocumentTaskTestCase(SignalMixin, TestCase):
             }
         }, 'csv with duplicates should produce correct meta')
 
+    def test_document_with_duplicates_nopanda(self):
+        self.disconnect_signals()
+        self.create_document_with_duplicates()
+
+        result = clean_and_update_document_nopanda.delay(self.doc.id)
+        meta = result.get()
+
+        self.reconnect_signals()
+
+        self.assertEqual(meta,
+        {
+            'event_name': 'document',
+            'data': {
+                'id': self.doc.id,
+                'duplicates': 1,
+                'columns': {
+                    'A': {'duplicates': 3},
+                    'B': {'duplicates': 3}
+                }
+            }
+        }, 'csv with duplicates should produce correct meta')
+
     def test_document_publishes(self):
+        self.disconnect_signals()
+        self.create_document_with_duplicates()
+        pub_event = Event()
+
+        def handler(data):
+            pub_event.set()
+
+        subscribe('csvapp.user.{}'.format(self.user.id), handler)
+
+        result = clean_and_update_document_nopanda.delay(self.doc.id)
+        meta = result.get()
+
+        self.reconnect_signals()
+        pub_event.wait(0.5)
+
+        self.assertTrue(
+            pub_event.is_set(),
+            'document task should publish data')
+
+    def test_document_publishes_nopanda(self):
         self.disconnect_signals()
         self.create_document_with_duplicates()
         pub_event = Event()
@@ -113,6 +157,39 @@ class SortedDocumentTaskTestCase(SignalMixin, TestCase):
 
         self.assertTrue(is_equal, 'ascending sort should match expected')
 
+    def test_sorted_asc_nopanda(self):
+        self.disconnect_signals()
+        self.create_document()
+
+        self.sorted_doc = SortedDocument.objects.create(
+            doc=self.doc, column='A', ascending=True)
+
+        result = create_sorted_document_file_nopanda.delay(self.sorted_doc.id)
+        meta = result.get()
+
+        self.reconnect_signals()
+        self.sorted_doc = SortedDocument.objects.get(pk=self.sorted_doc.id)
+
+        # Load contents into pandas
+        self.sorted_doc.file.open(mode='rb')
+        txt_iter = pd.read_csv(
+            self.sorted_doc.file,
+            iterator=True,
+            chunksize=1024 * 64)
+        df = pd.concat(txt_iter, ignore_index=True)
+
+        self.sorted_doc.file.close()
+
+        expected = pd.Series(['A', 'B', 'C'])
+
+        try:
+            assert_series_equal(expected, df['A'])
+            is_equal = True
+        except AssertionError:
+            is_equal = False
+
+        self.assertTrue(is_equal, 'ascending sort should match expected')
+
     def test_sorted_desc(self):
         self.disconnect_signals()
         self.create_document()
@@ -121,6 +198,38 @@ class SortedDocumentTaskTestCase(SignalMixin, TestCase):
             doc=self.doc, column='A', ascending=False)
 
         result = create_sorted_document_file.delay(self.sorted_doc.id)
+        meta = result.get()
+
+        self.reconnect_signals()
+        self.sorted_doc = SortedDocument.objects.get(pk=self.sorted_doc.id)
+
+        # Load contents into pandas
+        self.sorted_doc.file.open(mode='rb')
+        txt_iter = pd.read_csv(
+            self.sorted_doc.file,
+            iterator=True,
+            chunksize=1024 * 64)
+        df = pd.concat(txt_iter, ignore_index=True)
+        self.sorted_doc.file.close()
+
+        expected = pd.Series(['C', 'B', 'A'])
+
+        try:
+            assert_series_equal(expected, df['A'])
+            is_equal = True
+        except AssertionError:
+            is_equal = False
+
+        self.assertTrue(is_equal, 'descending sort should match expected')
+
+    def test_sorted_desc_nopanda(self):
+        self.disconnect_signals()
+        self.create_document()
+
+        self.sorted_doc = SortedDocument.objects.create(
+            doc=self.doc, column='A', ascending=False)
+
+        result = create_sorted_document_file_nopanda.delay(self.sorted_doc.id)
         meta = result.get()
 
         self.reconnect_signals()
